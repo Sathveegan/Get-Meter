@@ -1,0 +1,63 @@
+'use strict';
+
+const bcrypt = require('bcrypt');
+
+module.exports = (sequelize, type) => {
+    const User = sequelize.define('user', {
+        id: {
+            type: type.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        firstName: {
+            type: type.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: true
+            }
+        },
+        lastName: {
+            type: type.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: true
+            }
+        },
+        mobile: {
+            type: type.INTEGER,
+            allowNull: false,
+            validate: {
+                notEmpty: true
+            }
+        },
+        email: {
+            type: type.STRING,
+            allowNull: false,
+            validate: {
+                isEmail: true,
+            }
+        },
+        password: {
+            type: type.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: true
+            }
+        }
+    });
+
+    User.beforeValidate(user => {
+        if (user.password)
+            user.password = bcrypt.hashSync(user.password, 10);
+    });
+
+    User.prototype.comparePassword = function (password, cb) {
+        bcrypt.compare(password, this.getDataValue('password'), (err, result) => {
+            if (err)
+                return cb(err);
+            cb(null, result);
+        });
+    }
+
+    module.exports = User;
+}
